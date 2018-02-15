@@ -103,15 +103,114 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
 
 
 static int f(realtype t, N_Vector y, N_Vector ydot, void* pr0) {
+    
     double* pr = pr0;
+    double v;
+    /* The number corresponding to the protocol to be simulated is passed at the front of the parameter values vector*/
+   
+    v = ReturnVoltage( t, pr );
+    /* Parameters from input parameters - as the first element of the vector corresponds to the protocol number, the parameter values start from the second element*/
+    
+    
+    double P0 = pr[1];
+    double P1 = pr[2];
+    double P2 = pr[3];
+    double P3 = pr[4];
+    double P4 = pr[5];
+    double P5 = pr[6];
+    double P6 = pr[7];
+    double P7 = pr[8];
+    
+    
+    
+    /*Ensures microscopic reversibility condition satisfied*/
+    
+    const double y1 = NV_Ith_S(y, 0);
+    const double y2 = NV_Ith_S(y, 1);
+    const double y3 = NV_Ith_S(y, 2);
+    
+    const double y4 = (1.0-y1-y2-y3);
+    /* Model equations*/
+    
+    
+    
+    const double k32 = P4*exp(P5*v);
+    const double k23 = P6*exp(-P7*v);
+    
+    const double k43 = P0*exp(P1*v);
+    const double k34 = P2*exp(-P3*v);
+    
+    const double k12 = k43;
+    const double k21 = k34;
+    
+    const double k41 = k32;
+    const double k14 = k23;
+    
+    
+    NV_Ith_S(ydot, 0) = -k12*y1 + k21*y2 + k41*y4 - k14*y1;
+    NV_Ith_S(ydot, 1) = -k23*y2 + k32*y3 + k12*y1 - k21*y2;
+    NV_Ith_S(ydot, 2) = -k34*y3 + k43*y4 + k23*y2 - k32*y3;
+    
+    
+    return 0;
+}
+
+
+/* Mex function definition */
+void mexFunction(int nlhs, mxArray *plhs[],
+        int nrhs, const mxArray*prhs[] )
+        
+{
+    N_Vector ydot;
+    realtype t;
+    N_Vector y;
+    int M;
+    int NS;
+    
+    /* Pointer to input variables/parameters*/
+    
+    double* pr;
+    pr = mxGetPr(prhs[2]);
+    
+    M = mxGetN(T_IN);
+    double* T;
+    T = mxGetPr(prhs[0]);
+    
+    double* Y0;
+    Y0 = mxGetPr(prhs[1]);
+    
+    double *yout;
+    double *sout;
+    
+    int Numvar;
+    Numvar = mxGetN(Y_IN);
+    NS = ( mxGetN(S_IN) - 1 ) * Numvar; // Number of sensitivity parameters is num parameters * num Variables  
+                                        // Note: first parameter is protocol definition
+    
+    /* Create a matrix for the return vector of state occupancy probabilities */
+    YP_OUT = mxCreateDoubleMatrix(M-1, Numvar, mxREAL);
+    /* Create a matrix for the return vector of sensitivties of the open vector */
+    S_OUT  = mxCreateDoubleMatrix(M-1, NS, mxREAL);
+    
+    /* Assign pointer output */
+    yout = mxGetPr(YP_OUT);
+    /* Assign pointer output */
+    sout = mxGetPr(S_OUT);
+    
+    /* Mex function call */
+    MexHHScaled(ydot, t, y, pr, T, Y0, M, NS, yout, sout);
+    return;
+    
+}
+
+/*Calculate voltage at current time*/
+static double ReturnVoltage( realtype t, double* pr ){
     
     /* Define voltage protocol to be used*/
+    double protocol_number = pr[0];
     double v;
     /* This shift is needed for simulated protocol to match the protocol recorded in experiment, which is shifted by 0.1ms as compared to the original input protocol. Consequently, each step is held for 0.1ms longer in this version of the protocol as compared to the input.*/
     double shift = 0.1;
-    /* The number corresponding to the protocol to be simulated is passed at the front of the parameter values vector*/
-    double protocol_number = pr[0];
-    
     
     /* sine wave*/
     if (protocol_number==1) {
@@ -219,98 +318,6 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void* pr0) {
         v=pr[l+9];
         
     }
-    /* Parameters from input parameters - as the first element of the vector corresponds to the protocol number, the parameter values start from the second element*/
     
-    
-    double P0 = pr[1];
-    double P1 = pr[2];
-    double P2 = pr[3];
-    double P3 = pr[4];
-    double P4 = pr[5];
-    double P5 = pr[6];
-    double P6 = pr[7];
-    double P7 = pr[8];
-    
-    
-    
-    /*Ensures microscopic reversibility condition satisfied*/
-    
-    const double y1 = NV_Ith_S(y, 0);
-    const double y2 = NV_Ith_S(y, 1);
-    const double y3 = NV_Ith_S(y, 2);
-    
-    const double y4 = (1.0-y1-y2-y3);
-    /* Model equations*/
-    
-    
-    
-    const double k32 = P4*exp(P5*v);
-    const double k23 = P6*exp(-P7*v);
-    
-    const double k43 = P0*exp(P1*v);
-    const double k34 = P2*exp(-P3*v);
-    
-    const double k12 = k43;
-    const double k21 = k34;
-    
-    const double k41 = k32;
-    const double k14 = k23;
-    
-    
-    NV_Ith_S(ydot, 0) = -k12*y1 + k21*y2 + k41*y4 - k14*y1;
-    NV_Ith_S(ydot, 1) = -k23*y2 + k32*y3 + k12*y1 - k21*y2;
-    NV_Ith_S(ydot, 2) = -k34*y3 + k43*y4 + k23*y2 - k32*y3;
-    
-    
-    return 0;
-}
-
-
-
-
-/* Mex function definition */
-void mexFunction(int nlhs, mxArray *plhs[],
-        int nrhs, const mxArray*prhs[] )
-        
-{
-    N_Vector ydot;
-    realtype t;
-    N_Vector y;
-    int M;
-    int NS;
-    
-    /* Pointer to input variables/parameters*/
-    
-    double* pr;
-    pr = mxGetPr(prhs[2]);
-    
-    M = mxGetN(T_IN);
-    double* T;
-    T = mxGetPr(prhs[0]);
-    
-    double* Y0;
-    Y0 = mxGetPr(prhs[1]);
-    
-    double *yout;
-    double *sout;
-    
-    int Numvar;
-    Numvar = mxGetN(Y_IN);
-    NS = ( mxGetN(S_IN) - 1 ) * Numvar; // Number of sensitivity parameters is num parameters * num Variables  
-                                        // Note: first parameter is protocol definition
-    
-    /* Create a matrix for the return vector of state occupancy probabilities */
-    YP_OUT = mxCreateDoubleMatrix(M-1, Numvar, mxREAL);
-    /* Create a matrix for the return vector of sensitivties of the open vector */
-    S_OUT  = mxCreateDoubleMatrix(M-1, NS, mxREAL);
-    
-    /* Assign pointer output */
-    yout = mxGetPr(YP_OUT);
-    /* Assign pointer output */
-    sout = mxGetPr(S_OUT);
-    
-    /* Mex function call */
-    MexHHScaled(ydot, t, y, pr, T, Y0, M, NS, yout, sout);
-    return;
-    
+    return v;
 }
