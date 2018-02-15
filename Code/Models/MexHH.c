@@ -2,12 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "mex.h"
-#include <cvode/cvode.h>
-#include <cvode/cvode_dense.h>
-#include <sundials/sundials_nvector.h>
-#include <sundials/sundials_dense.h>
-#include <sundials/sundials_types.h>
-#include <nvector/nvector_serial.h>
+#include </usr/include/cvode/cvode.h>
+#include </usr/include/cvode/cvode_dense.h>
+#include </usr/include/sundials/sundials_nvector.h>
+#include </usr/include/sundials/sundials_dense.h>
+#include </usr/include/sundials/sundials_types.h>
+#include </usr/include/nvector/nvector_serial.h>
 /* Path to CVode to be changed as required above */
 
 
