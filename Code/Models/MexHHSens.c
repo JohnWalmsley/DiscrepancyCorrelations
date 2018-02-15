@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "mex.h"
-#include </usr/include/cvode/cvode.h>
-#include </usr/include/cvode/cvode_dense.h>
+#include </usr/include/cvodes/cvodes.h>
+#include </usr/include/cvodes/cvodes_dense.h>
 #include </usr/include/sundials/sundials_nvector.h>
 #include </usr/include/sundials/sundials_dense.h>
 #include </usr/include/sundials/sundials_types.h>
