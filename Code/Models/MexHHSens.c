@@ -19,17 +19,19 @@
 #define	T_IN	prhs[0]
 #define	Y_IN	prhs[1]
 #define P_IN    prhs[2]
+#define S_IN    prhs[3]
 
 /* Output Arguments
  * - YP_OUT is a vector containing the probability of being in the open state
  * at each time point */
 
 #define	YP_OUT	plhs[0]
+#define S_OUT   plhs[1]
 
 static int f(realtype t, N_Vector y, N_Vector ydot, void* pr0);
 
 /* Mex Function*/
-static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, double* T, double* Y0, int M, double* yout) {
+static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, double* T, double* Y0, int M, double* yout, double* sout) {
     
     int N=(M-1);
     
@@ -83,6 +85,7 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
         
         /*Probability of being in open state is equal to 1-probability of being in any other state*/
         yout[k] = NV_Ith_S(y0, 2);
+        sout[k] = (double) k; // for now, assign value k to sout to check something happens on every loop.
         
     }
     
@@ -282,17 +285,23 @@ void mexFunction(int nlhs, mxArray *plhs[],
     Y0 = mxGetPr(prhs[1]);
     
     double *yout;
+    double *sout;
+    
     int Numvar;
     Numvar = mxGetN(Y_IN);
     
     /* Create a matrix for the return vector of open probabilities */
     YP_OUT = mxCreateDoubleMatrix(M-1, 1, mxREAL);
+    /* Create a matrix for the return vector of sensitivties of the open vector */
+    S_OUT  = mxCreateDoubleMatrix(M-1, 1, mxREAL); // Note: first parameter is protocol definition
     
     /* Assign pointer output */
     yout = mxGetPr(YP_OUT);
+    /* Assign pointer output */
+    sout = mxGetPr(S_OUT);
     
     /* Mex function call */
-    MexHHScaled(ydot, t, y, pr, T, Y0, M, yout);
+    MexHHScaled(ydot, t, y, pr, T, Y0, M, yout, sout);
     return;
     
 }
