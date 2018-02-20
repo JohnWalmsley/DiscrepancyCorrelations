@@ -2,12 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "mex.h"
-#include </usr/include/cvodes/cvodes.h>
-#include </usr/include/cvodes/cvodes_dense.h>
-#include </usr/include/sundials/sundials_nvector.h>
-#include </usr/include/sundials/sundials_dense.h>
-#include </usr/include/sundials/sundials_types.h>
-#include </usr/include/nvector/nvector_serial.h>
+#include </usr/include/cvodes/cvodes.h>           /* prototypes for CVODES fcts. and consts. */
+#include </usr/include/cvodes/cvodes_dense.h>     /* prototype for CVDENSE fcts. and constants */
+#include </usr/include/nvector/nvector_serial.h>  /* defs. of serial NVECTOR fcts. and macros  */
+#include </usr/include/sundials/sundials_types.h> /* def. of type realtype */
+#include </usr/include/sundials/sundials_math.h>  /* definition of ABS */
 /* Path to CVode to be changed as required above */
 
 
