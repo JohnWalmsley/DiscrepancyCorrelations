@@ -375,17 +375,17 @@ void mexFunction(int nlhs, mxArray *plhs[],
 }
 
 /*Calculate voltage at current time*/
-static double ReturnVoltage( realtype t, double* pr ){
+static realtype ReturnVoltage( realtype t, realtype* pr ){
     
     /* Define voltage protocol to be used*/
-    double protocol_number = pr[0];
-    double v;
+    realtype protocol_number = pr[0];
+    realtype v;
     /* This shift is needed for simulated protocol to match the protocol recorded in experiment, which is shifted by 0.1ms as compared to the original input protocol. Consequently, each step is held for 0.1ms longer in this version of the protocol as compared to the input.*/
-    double shift = 0.1;
+    realtype shift = 0.1;
     
     /* sine wave*/
     if (protocol_number==1) {
-        double C[6] = {54, 26, 10, 0.007/(2*M_PI), 0.037/(2*M_PI), 0.19/(2*M_PI)};
+        realtype C[6] = {54, 26, 10, 0.007/(2*M_PI), 0.037/(2*M_PI), 0.19/(2*M_PI)};
         
         if (t>=0 && t<250+shift)
         {
