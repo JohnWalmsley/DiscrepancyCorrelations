@@ -28,6 +28,7 @@
 #define S_OUT   plhs[1]
 
 static int f(realtype t, N_Vector y, N_Vector ydot, void* pr0);
+static realtype ReturnVoltage( realtype t, realtype* pr );
 
 /* Mex Function*/
 static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, double* T, double* Y0, int M, int NS, double* yout, double* sout) {
