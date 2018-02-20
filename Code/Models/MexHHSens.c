@@ -131,11 +131,11 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
             sens_data = NV_DATA_S(yS[kp]);
             
             idx = k + kp * N;
-            sout[idx] = sens_data[0];
+            sout[idx] = sens_data[0]; // enter sensitivity to parameter P_kp for y0 into first block
             idx += numSens*N;
-            sout[idx] = sens_data[1];
+            sout[idx] = sens_data[1]; // enter sensitivity to parameter P_kp for y1 into second block 
             idx += numSens*N;;
-            sout[idx] = sens_data[2];// for now, assign value k+ks to sout to check something happens on every loop.
+            sout[idx] = sens_data[2]; // enter sensitivity to parameter P_kp for y2 into third block 
             }
     }
     
