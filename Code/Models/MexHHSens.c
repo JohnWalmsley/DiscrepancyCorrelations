@@ -33,6 +33,7 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void* pr0);
                DlsMat J, void *pr0, 
                N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);*/
 static realtype ReturnVoltage( realtype t, realtype* pr );
+static int check_flag(void *flagvalue, const char *funcname, int opt);
 
 /* Mex Function*/
 static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, double* T, double* Y0, int M, int NS, double* yout, double* sout) {
@@ -369,4 +370,40 @@ static double ReturnVoltage( realtype t, double* pr ){
     }
     
     return v;
+}
+
+static int check_flag(void *flagvalue, const char *funcname, int opt)
+{
+  int *errflag;
+
+  /* Check if SUNDIALS function returned NULL pointer - no memory allocated */
+  if (opt == 0 && flagvalue == NULL) {
+    /*fprintf(stderr, 
+            "\nSUNDIALS_ERROR: %s() failed - returned NULL pointer\n\n",
+	    funcname);*/
+    mexPrintf("\nSUNDIALS_ERROR: %s() failed - returned NULL pointer\n\n",
+	    funcname);
+    return(1); }
+
+  /* Check if flag < 0 */
+  else if (opt == 1) {
+    errflag = (int *) flagvalue;
+    if (*errflag < 0) {
+      /*fprintf(stderr, 
+              "\nSUNDIALS_ERROR: %s() failed with flag = %d\n\n",
+	      funcname, *errflag);*/
+      mexPrintf("\nSUNDIALS_ERROR: %s() failed with flag = %d\n\n",
+	    funcname);
+      return(1); }}
+
+  /* Check if function returned NULL pointer - no memory allocated */
+  else if (opt == 2 && flagvalue == NULL) {
+    /*fprintf(stderr, 
+            "\nMEMORY_ERROR: %s() failed - returned NULL pointer\n\n",
+	    funcname);*/
+      mexPrintf("\nMEMORY_ERROR: %s() failed - returned NULL pointer\n\n",
+	    funcname);
+    return(1); }
+
+  return(0);
 }
