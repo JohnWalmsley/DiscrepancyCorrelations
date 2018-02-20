@@ -32,6 +32,10 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void* pr0);
                N_Vector y, N_Vector fy, 
                DlsMat J, void *pr0, 
                N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);*/
+static int fS(int Ns, realtype t, N_Vector y, N_Vector ydot, 
+              int iS, N_Vector yS, N_Vector ySdot, 
+              void *user_data, N_Vector tmp1, N_Vector tmp2);
+
 static realtype ReturnVoltage( realtype t, realtype* pr );
 static int check_flag(void *flagvalue, const char *funcname, int opt);
 
@@ -200,6 +204,101 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void* pr0) {
 // 
 //     return(0);
 // }
+
+
+static int fS(int Ns, realtype t, N_Vector y, N_Vector ydot, 
+              int iS, N_Vector yS, N_Vector ySdot, 
+              void *pr0, N_Vector tmp1, N_Vector tmp2)
+{
+  realtype* pr = pr0;
+  realtype v;
+  /* The number corresponding to the protocol to be simulated is passed at the front of the parameter values vector*/
+   
+  v = ReturnVoltage( t, pr );
+    
+  realtype P0 = pr[1];
+  realtype P1 = pr[2];
+  realtype P2 = pr[3];
+  realtype P3 = pr[4];
+  realtype P4 = pr[5];
+  realtype P5 = pr[6];
+  realtype P6 = pr[7];
+  realtype P7 = pr[8];
+  
+  realtype k32 = P4*exp(P5*v);
+  realtype k23 = P6*exp(-P7*v);
+    
+  realtype k43 = P0*exp(P1*v);
+  realtype k34 = P2*exp(-P3*v);
+    
+  realtype k12 = k43;
+  realtype k21 = k34;
+    
+  realtype k41 = k32;
+  realtype k14 = k23;
+  
+  realtype s1, s2, s3;
+  realtype sd1, sd2, sd3;
+
+  realtype y1, y2, y3, y4;
+  y1 = NV_Ith_S(y,0);  y2 = NV_Ith_S(y,1);  y3 = NV_Ith_S(y,2);
+  y4 = 1 - y1 - y2 - y3;
+  s1 = NV_Ith_S(yS,0); s2 = NV_Ith_S(yS,1); s3 = NV_Ith_S(yS,2);
+
+  sd1 = ( - ( k12 + k14 ) - k41 ) * s1 + ( k21 - k41 ) * s2 + ( -k41 ) * s3;
+  sd2 = k12 * s1 + ( - ( k23 + k21 ) ) * s2 + ( k32 ) * s3;
+  sd3 = - k12 * s1 + k23 * s2 + ( -( k34 + k32 ) - k43 ) * s3;
+  
+  switch (iS) {
+  case 0:
+    sd1 += -exp(P1*v)*y1;
+    sd2 +=  exp(P1*v)*y1;
+    sd3 +=  exp(P1*v)*y4;
+    break;
+  case 1:
+    sd1 += -v*k12*y1;
+    sd2 +=  v*k12*y1;
+    sd3 +=  v*k43*y4;
+    break;
+  case 2:
+    sd1 +=  exp(-P3*v)*y2;
+    sd2 += -exp(-P3*v)*y2;
+    sd3 += -exp(-P3*v)*y3;
+    break;
+  case 3:
+    sd1 += -v*k21*y2;
+    sd2 +=  v*k21*y2;
+    sd3 +=  v*k34*y3;
+    break;
+  case 4:
+    sd1 +=  exp(P5*v)*y4;
+    sd2 +=  exp(P5*v)*y3;
+    sd3 += -exp(P5*v)*y3;
+    break;
+  case 5:
+    sd1 +=  v*k41*y4;
+    sd2 +=  v*k32*y3;
+    sd3 += -v*k32*y3;
+    break;
+  case 6:
+    sd1 +=  exp(-P7*v)*y1;
+    sd2 += -exp(-P7*v)*y2;
+    sd3 +=  exp(-P7*v)*y2;
+    break;
+  case 7:
+    sd1 +=  v*k14*y1;
+    sd2 +=  v*k23*y2;
+    sd3 += -v*k23*y2;
+    break;
+  }
+  
+  NV_Ith_S(ySdot,0) = sd1;
+  NV_Ith_S(ySdot,1) = sd2;
+  NV_Ith_S(ySdot,2) = sd3;
+
+  return 0;
+}
+
 
 /* Mex function definition */
 void mexFunction(int nlhs, mxArray *plhs[],
