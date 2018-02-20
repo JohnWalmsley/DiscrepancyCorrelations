@@ -117,6 +117,8 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
         if (CVode(cvode_mem, tout, y0, &t, CV_NORMAL) < 0) {
             fprintf(stderr, "Error in CVode: %d\n", flag);
         }
+        flag = CVodeGetSens(cvode_mem, &t, yS);
+        if (check_flag(&flag, "CVodeGetSens", 1)) break;
         
         /*Probability of being in open state is equal to 1-probability of being in any other state*/
         /*All states are required to calculate fluxes*/
@@ -124,9 +126,16 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
         yout[k+N]   = NV_Ith_S(y0, 1);
         yout[k+2*N] = NV_Ith_S(y0, 2); // Note: open probability is now the third column
         
-        for ( ks = 0; ks < NS; ++ks ){
-            idx = k + N * ks;
-            sout[idx] = (double) k+ks; // for now, assign value k+ks to sout to check something happens on every loop.
+        for ( kp = 0; kp < numSens; ++kp ){
+            realtype *sens_data;
+            sens_data = NV_DATA_S(yS[kp]);
+            
+            idx = k + kp * N;
+            sout[idx] = sens_data[0];
+            idx += numSens*N;
+            sout[idx] = sens_data[1];
+            idx += numSens*N;;
+            sout[idx] = sens_data[2];// for now, assign value k+ks to sout to check something happens on every loop.
             }
     }
     
@@ -360,16 +369,18 @@ void mexFunction(int nlhs, mxArray *plhs[],
     
     /* Create a matrix for the return vector of state occupancy probabilities */
     YP_OUT = mxCreateDoubleMatrix(M-1, Numvar, mxREAL);
-    /* Create a matrix for the return vector of sensitivties of the open vector */
+    /* Create a matrix for the return vector of sensitivties of the model states.
+     * First block of 8 columns is parameter y0
+     * Second is y1
+     * Third block is the open probability y2 */
     S_OUT  = mxCreateDoubleMatrix(M-1, NS, mxREAL);
     
     /* Assign pointer output */
     yout = mxGetPr(YP_OUT);
     /* Assign pointer output */
     sout = mxGetPr(S_OUT);
-    
     /* Mex function call */
-    MexHHScaled(ydot, t, y, pr, T, Y0, M, NS, yout, sout);
+    MexHHScaled(ydot, t, y, pr, T, Y0, M, NS, yout, sout );
     return;
     
 }
