@@ -28,6 +28,10 @@
 #define S_OUT   plhs[1]
 
 static int f(realtype t, N_Vector y, N_Vector ydot, void* pr0);
+/*static int Jac(long int N, realtype t,
+               N_Vector y, N_Vector fy, 
+               DlsMat J, void *pr0, 
+               N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);*/
 static realtype ReturnVoltage( realtype t, realtype* pr );
 
 /* Mex Function*/
@@ -155,6 +159,51 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void* pr0) {
     return 0;
 }
 
+
+/* 
+ * Jacobian routine. Compute J(t,y). 
+ */
+// static int Jac(long int N, realtype t,
+//                N_Vector y, N_Vector fy, 
+//                DlsMat J, void *pr0, 
+//                N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)
+// {
+//     realtype* pr = pr0;
+//     realtype v;
+//     /* The number corresponding to the protocol to be simulated is passed at the front of the parameter values vector*/
+//     v = ReturnVoltage( t, pr );
+//     /* Parameters from input parameters - as the first element of the vector corresponds to the protocol number, the parameter values start from the second element*/
+//         
+//     realtype P0 = pr[1];
+//     realtype P1 = pr[2];
+//     realtype P2 = pr[3];
+//     realtype P3 = pr[4];
+//     realtype P4 = pr[5];
+//     realtype P5 = pr[6];
+//     realtype P6 = pr[7];
+//     realtype P7 = pr[8];
+//        
+//     /* Model equations*/
+//     realtype k32 = P4*exp(P5*v);
+//     realtype k23 = P6*exp(-P7*v);
+//     
+//     realtype k43 = P0*exp(P1*v);
+//     realtype k34 = P2*exp(-P3*v);
+//     
+//     realtype k12 = k43;
+//     realtype k21 = k34;
+//     
+//     realtype k41 = k32;
+//     realtype k14 = k23;
+//     
+//     //realtype input;
+//     //input = 0;
+//     DENSE_ELEM(J,0,0) = -(k12+k14)-k41;   DENSE_ELEM(J,0,1) = k21-k41;      DENSE_ELEM(J,0,2) = -k41;
+//     DENSE_ELEM(J,1,0) =   k12;            DENSE_ELEM(J,1,1) = -(k23+k21);   DENSE_ELEM(J,1,2) = k12;
+//     DENSE_ELEM(J,2,0) =  -k43;            DENSE_ELEM(J,2,1) = k23;          DENSE_ELEM(J,2,2) = -(k34+k32)-k43;
+// 
+//     return(0);
+// }
 
 /* Mex function definition */
 void mexFunction(int nlhs, mxArray *plhs[],
