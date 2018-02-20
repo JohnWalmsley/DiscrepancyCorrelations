@@ -109,48 +109,43 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
 
 static int f(realtype t, N_Vector y, N_Vector ydot, void* pr0) {
     
-    double* pr = pr0;
-    double v;
+    realtype* pr = pr0;
+    realtype v;
     /* The number corresponding to the protocol to be simulated is passed at the front of the parameter values vector*/
    
     v = ReturnVoltage( t, pr );
     /* Parameters from input parameters - as the first element of the vector corresponds to the protocol number, the parameter values start from the second element*/
     
-    
-    double P0 = pr[1];
-    double P1 = pr[2];
-    double P2 = pr[3];
-    double P3 = pr[4];
-    double P4 = pr[5];
-    double P5 = pr[6];
-    double P6 = pr[7];
-    double P7 = pr[8];
-    
-    
+    realtype P0 = pr[1];
+    realtype P1 = pr[2];
+    realtype P2 = pr[3];
+    realtype P3 = pr[4];
+    realtype P4 = pr[5];
+    realtype P5 = pr[6];
+    realtype P6 = pr[7];
+    realtype P7 = pr[8];
     
     /*Ensures microscopic reversibility condition satisfied*/
     
-    const double y1 = NV_Ith_S(y, 0);
-    const double y2 = NV_Ith_S(y, 1);
-    const double y3 = NV_Ith_S(y, 2);
+    realtype y1 = NV_Ith_S(y, 0);
+    realtype y2 = NV_Ith_S(y, 1);
+    realtype y3 = NV_Ith_S(y, 2);
     
-    const double y4 = (1.0-y1-y2-y3);
+    realtype y4 = (1.0-y1-y2-y3);
+ 
     /* Model equations*/
     
+    realtype k32 = P4*exp(P5*v);
+    realtype k23 = P6*exp(-P7*v);
     
+    realtype k43 = P0*exp(P1*v);
+    realtype k34 = P2*exp(-P3*v);
     
-    const double k32 = P4*exp(P5*v);
-    const double k23 = P6*exp(-P7*v);
+    realtype k12 = k43;
+    realtype k21 = k34;
     
-    const double k43 = P0*exp(P1*v);
-    const double k34 = P2*exp(-P3*v);
-    
-    const double k12 = k43;
-    const double k21 = k34;
-    
-    const double k41 = k32;
-    const double k14 = k23;
-    
+    realtype k41 = k32;
+    realtype k14 = k23;
     
     NV_Ith_S(ydot, 0) = -k12*y1 + k21*y2 + k41*y4 - k14*y1;
     NV_Ith_S(ydot, 1) = -k23*y2 + k32*y3 + k12*y1 - k21*y2;
