@@ -46,9 +46,12 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
     
     /*Work out T0 and Tfinal from T_IN*/
     realtype T0 =T[0];
-    
+    int numSens = 8;
+    int is;
+             
     realtype Tfinal = ((M-1)*((T[1])-(T[0])));
-    
+    //realtype* realPr = pr;
+    realtype pbar[NS];
     /* Define tolerances to be used*/
     N_Vector abstol = NULL;
     
@@ -60,30 +63,53 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
     realtype reltol = 1e-8;
     
     /* Set up CVode*/
-    int flag, k, ks, idx;
+    int flag, k, ks, kp, idx;
     N_Vector y0 = NULL;
+    N_Vector *yS;
+    yS = NULL;
     void* cvode_mem = NULL;
     y0 = N_VNew_Serial(3);
     NV_Ith_S(y0, 0) = Y0[0];
     NV_Ith_S(y0, 1) = Y0[1];
     NV_Ith_S(y0, 2) = Y0[2];
-    
+        
     realtype NState = 3;
-    
     /* Solver options*/
     cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
-    
     /* Initialize the memory */
-    flag = CVodeSetUserData(cvode_mem, pr);
-    
     flag = CVodeInit(cvode_mem, &f, T0, y0);
-    
+    flag = CVodeSetUserData(cvode_mem, pr);
     /* Set tolerances and maximum step*/
     flag = CVodeSVtolerances(cvode_mem, reltol, abstol);
     flag = CVDense(cvode_mem, NState);
+    //flag = CVDlsSetDenseJacFn(cvode_mem, Jac);
+    //if (check_flag(&flag, "CVDlsSetDenseJacFn", 1)) return;
     flag = CVodeSetMaxStep(cvode_mem, 0.1);
     
-    /* Call CVode test for error and add result to output vector yout */
+    pbar[0] = pr[0];
+    pbar[1] = pr[1];
+    pbar[2] = pr[2];
+    pbar[3] = pr[3];
+    pbar[4] = pr[4];
+    pbar[5] = pr[5];
+    pbar[6] = pr[6];
+    pbar[7] = pr[7];
+        
+    yS = N_VCloneVectorArray_Serial(numSens, y0);
+    
+    if (check_flag((void *)yS, "N_VCloneVectorArray_Serial", 0)) return;
+    for (is=0;is<numSens;is++) N_VConst( RCONST(0.0), yS[is] );
+        
+    flag = CVodeSensInit1(cvode_mem, numSens, CV_SIMULTANEOUS, fS, yS);
+    if(check_flag(&flag, "CVodeSensInit", 1)) return;
+    
+    flag = CVodeSensEEtolerances(cvode_mem);
+    if(check_flag(&flag, "CVodeSensEEtolerances", 1)) return;
+    
+    flag = CVodeSetSensParams(cvode_mem, NULL, pbar, NULL);
+    if (check_flag(&flag, "CVodeSetSensParams", 1)) return;
+
+     /* Call CVode test for error and add result to output vector yout */
     for (k = 1; k < N; ++k) {
         double tout = (k*(Tfinal)/N);
         
@@ -106,6 +132,7 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
     
     /*Free memory*/
     N_VDestroy_Serial(y0);
+    N_VDestroyVectorArray_Serial(yS, numSens);  /* Free yS vector */
     CVodeFree(&cvode_mem);
     
 }
