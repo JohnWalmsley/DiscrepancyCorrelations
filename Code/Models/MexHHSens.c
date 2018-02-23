@@ -40,7 +40,7 @@ static realtype ReturnVoltage( realtype t, realtype* pr );
 static int check_flag(void *flagvalue, const char *funcname, int opt);
 
 /* Mex Function*/
-static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, double* T, double* Y0, int M, int NS, double* yout, double* sout) {
+static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, double* T, double* Y0, double* S0, int M, int NS, double* yout, double* sout) {
     
     int N=(M-1);
     
@@ -98,7 +98,12 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
     yS = N_VCloneVectorArray_Serial(numSens, y0);
     
     if (check_flag((void *)yS, "N_VCloneVectorArray_Serial", 0)) return;
-    for (is=0;is<numSens;is++) N_VConst( RCONST(0.0), yS[is] );
+    // Load sensitivity initial values into yS
+    for (is=0;is<numSens;is++){ 
+        NV_Ith_S(yS[is], 0) = S0[is];
+        NV_Ith_S(yS[is], 1) = S0[is + numSens];
+        NV_Ith_S(yS[is], 2) = S0[is + 2*numSens];
+    };
         
     flag = CVodeSensInit1(cvode_mem, numSens, CV_SIMULTANEOUS, fS, yS);
     if(check_flag(&flag, "CVodeSensInit", 1)) return;
@@ -112,7 +117,6 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
      /* Call CVode test for error and add result to output vector yout */
     for (k = 1; k < N; ++k) {
         double tout = (k*(Tfinal)/N);
-        
         
         if (CVode(cvode_mem, tout, y0, &t, CV_NORMAL) < 0) {
             fprintf(stderr, "Error in CVode: %d\n", flag);
@@ -359,6 +363,9 @@ void mexFunction(int nlhs, mxArray *plhs[],
     double* Y0;
     Y0 = mxGetPr(prhs[1]);
     
+    double* S0;
+    S0 = mxGetPr(prhs[3]);
+    
     double *yout;
     double *sout;
     
@@ -366,7 +373,6 @@ void mexFunction(int nlhs, mxArray *plhs[],
     Numvar = mxGetN(Y_IN);
     NS = ( mxGetN(S_IN) - 1 ) * Numvar; // Number of sensitivity parameters is num parameters * num Variables  
                                         // Note: first parameter is protocol definition
-    
     /* Create a matrix for the return vector of state occupancy probabilities */
     YP_OUT = mxCreateDoubleMatrix(M-1, Numvar, mxREAL);
     /* Create a matrix for the return vector of sensitivties of the model states.
@@ -380,7 +386,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
     /* Assign pointer output */
     sout = mxGetPr(S_OUT);
     /* Mex function call */
-    MexHHScaled(ydot, t, y, pr, T, Y0, M, NS, yout, sout );
+    MexHHScaled(ydot, t, y, pr, T, Y0, S0, M, NS, yout, sout );
     return;
     
 }
