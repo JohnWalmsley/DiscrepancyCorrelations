@@ -26,6 +26,7 @@
 
 #define	YP_OUT	plhs[0]
 #define S_OUT   plhs[1]
+#define F_OUT   plhs[2]
 
 static int f(realtype t, N_Vector y, N_Vector ydot, void* pr0);
 /*static int Jac(long int N, realtype t,
@@ -38,9 +39,10 @@ static int fS(int Ns, realtype t, N_Vector y, N_Vector ydot,
 
 static realtype ReturnVoltage( realtype t, realtype* pr );
 static int check_flag(void *flagvalue, const char *funcname, int opt);
+static int calculate_flux( double* flux, realtype t, realtype* pr, N_Vector y );
 
 /* Mex Function*/
-static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, double* T, double* Y0, double* S0, int M, int NS, double* yout, double* sout) {
+static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, double* T, double* Y0, double* S0, int M, int NS, double* yout, double* sout, double* fout) {
     
     int N=(M-1);
     
@@ -48,6 +50,7 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
     realtype T0 =T[0];
     int numSens = 8;
     int is;
+    int numFlux = 8;
              
     realtype Tfinal = ((M-1)*((T[1])-(T[0])));
     //realtype* realPr = pr;
@@ -61,9 +64,9 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
     NV_Ith_S(abstol, 1) = 1e-8;
     NV_Ith_S(abstol, 2) = 1e-8;
     realtype reltol = 1e-8;
-    
+    realtype flux[numFlux];
     /* Set up CVode*/
-    int flag, k, ks, kp, idx;
+    int flag, k, ks, kp, kf, idx;
     N_Vector y0 = NULL;
     N_Vector *yS;
     yS = NULL;
@@ -130,16 +133,25 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
         yout[k+N]   = NV_Ith_S(y0, 1);
         yout[k+2*N] = NV_Ith_S(y0, 2); // Note: open probability is now the third column
         
+        calculate_flux( flux, tout, pr, y0 );
+                            
+        for ( kf = 0; kf < numFlux; ++kf ){
+            idx = k + kf * N;
+            fout[idx] = flux[kf];
+        }
+
         for ( kp = 0; kp < numSens; ++kp ){
-            realtype *sens_data;
-            sens_data = NV_DATA_S(yS[kp]);
             
+            realtype *sens_data;
+            
+            sens_data = NV_DATA_S(yS[kp]);
             idx = k + kp * N;
             sout[idx] = sens_data[0]; // enter sensitivity to parameter P_kp for y0 into first block
             idx += numSens*N;
             sout[idx] = sens_data[1]; // enter sensitivity to parameter P_kp for y1 into second block 
-            idx += numSens*N;;
+            idx += numSens*N;
             sout[idx] = sens_data[2]; // enter sensitivity to parameter P_kp for y2 into third block 
+  
             }
     }
     
@@ -339,6 +351,61 @@ static int fS(int Ns, realtype t, N_Vector y, N_Vector ydot,
   return 0;
 }
 
+static int calculate_flux( double* flux, realtype t, realtype *pr, N_Vector y )
+{
+  realtype v;
+  /* The number corresponding to the protocol to be simulated is passed at the front of the parameter values vector*/
+   
+  v = ReturnVoltage( t, pr );
+    
+  realtype P0 = pr[1];
+  realtype P1 = pr[2];
+  realtype P2 = pr[3];
+  realtype P3 = pr[4];
+  realtype P4 = pr[5];
+  realtype P5 = pr[6];
+  realtype P6 = pr[7];
+  realtype P7 = pr[8];
+  
+  realtype k32 = P4*exp(P5*v);
+  realtype k23 = P6*exp(-P7*v);
+    
+  realtype k43 = P0*exp(P1*v);
+  realtype k34 = P2*exp(-P3*v);
+    
+  realtype k12 = k43;
+  realtype k21 = k34;
+    
+  realtype k41 = k32;
+  realtype k14 = k23;
+
+  realtype y1, y2, y3, y4;
+  y1 = NV_Ith_S(y,0);  y2 = NV_Ith_S(y,1);  y3 = NV_Ith_S(y,2);
+  y4 = 1 - y1 - y2 - y3;
+
+  /* order of fluxes is a little difficult to relate to the parameters or the variables!
+   *    Logic for fluxes:
+   *    Kylie used y0[2] = y3 as O in the original MexHH.c
+   *    Therefore, y3 is O
+   *    Fluxes k34 and k32 leaving O go to I and C, so these are y4 and y2
+   *    k34 has negative exponent (Pa exp(-pb V), so y4 is C
+   *    Therefore I is y2 and IC is y1
+   *    ... I think
+   */ 
+  
+  // Order: y1 y2 y3 y4
+  
+  flux[0] = k12*y1; //IC->I
+  flux[1] = k14*y1; //IC->C
+  flux[2] = k21*y2; // I->IC 
+  flux[3] = k23*y2; // I->O
+  flux[4] = k32*y3; // O->I
+  flux[5] = k34*y3; // O->C
+  flux[6] = k41*y4; // C->IC
+  flux[7] = k43*y4; // C->O
+    
+  return 0;
+}
 
 /* Mex function definition */
 void mexFunction(int nlhs, mxArray *plhs[],
@@ -349,44 +416,50 @@ void mexFunction(int nlhs, mxArray *plhs[],
     realtype t;
     N_Vector y;
     int M;
-    int NS;
+    int NS, NV;
     
     /* Pointer to input variables/parameters*/
-    
-    double* pr;
-    pr = mxGetPr(prhs[2]);
-    
-    M = mxGetN(T_IN);
+       
+    M  = mxGetN(T_IN);
     double* T;
-    T = mxGetPr(prhs[0]);
+    T  = mxGetPr(prhs[0]);
     
     double* Y0;
     Y0 = mxGetPr(prhs[1]);
+    
+    double* pr;
+    pr = mxGetPr(prhs[2]);
     
     double* S0;
     S0 = mxGetPr(prhs[3]);
     
     double *yout;
     double *sout;
+    double *fout;
     
-    int Numvar;
-    Numvar = mxGetN(Y_IN);
-    NS = ( mxGetN(S_IN) - 1 ) * Numvar; // Number of sensitivity parameters is num parameters * num Variables  
-                                        // Note: first parameter is protocol definition
+    NV = mxGetN(Y_IN);
+    NS = mxGetN(S_IN); // Number of sensitivity parameters is num parameters * num Variables  
+    // Note: first parameter is protocol definition
+    int Numpars;
+
     /* Create a matrix for the return vector of state occupancy probabilities */
-    YP_OUT = mxCreateDoubleMatrix(M-1, Numvar, mxREAL);
+    YP_OUT = mxCreateDoubleMatrix(M-1, NV, mxREAL);
     /* Create a matrix for the return vector of sensitivties of the model states.
      * First block of 8 columns is parameter y0
      * Second is y1
      * Third block is the open probability y2 */
     S_OUT  = mxCreateDoubleMatrix(M-1, NS, mxREAL);
+    /* Matrix for fluxes */
+    F_OUT  = mxCreateDoubleMatrix(M-1, 2*(NV+1), mxREAL);
     
     /* Assign pointer output */
     yout = mxGetPr(YP_OUT);
     /* Assign pointer output */
     sout = mxGetPr(S_OUT);
+    /* Assign pointer output */
+    fout = mxGetPr(F_OUT);
     /* Mex function call */
-    MexHHScaled(ydot, t, y, pr, T, Y0, S0, M, NS, yout, sout );
+    MexHHScaled(ydot, t, y, pr, T, Y0, S0, M, NS, yout, sout, fout );
     return;
     
 }
