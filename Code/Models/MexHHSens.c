@@ -89,7 +89,7 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
     //if (check_flag(&flag, "CVDlsSetDenseJacFn", 1)) return;
     flag = CVodeSetMaxStep(cvode_mem, 0.1);
     
-    pbar[0] = pr[0];
+    pbar[0] = 0.1;//pr[0];
     pbar[1] = pr[1];
     pbar[2] = pr[2];
     pbar[3] = pr[3];
@@ -97,7 +97,7 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
     pbar[5] = pr[5];
     pbar[6] = pr[6];
     pbar[7] = pr[7];
-        
+    pbar[8] = pr[8];
     yS = N_VCloneVectorArray_Serial(numSens, y0);
     
     if (check_flag((void *)yS, "N_VCloneVectorArray_Serial", 0)) return;
@@ -299,7 +299,7 @@ static int fS(int Ns, realtype t, N_Vector y, N_Vector ydot,
 
   sd1 = ( - ( k12 + k14 ) - k41 ) * s1 + ( k21 - k41 ) * s2 + ( -k41 ) * s3;
   sd2 = k12 * s1 + ( - ( k23 + k21 ) ) * s2 + ( k32 ) * s3;
-  sd3 = - k12 * s1 + k23 * s2 + ( -( k34 + k32 ) - k43 ) * s3;
+  sd3 = - k43 * s1 + (k23-k43) * s2 + ( -( k34 + k32 ) - k43 ) * s3;
   
   switch (iS) {
   case 0:
@@ -472,6 +472,12 @@ static realtype ReturnVoltage( realtype t, realtype* pr ){
     realtype v;
     /* This shift is needed for simulated protocol to match the protocol recorded in experiment, which is shifted by 0.1ms as compared to the original input protocol. Consequently, each step is held for 0.1ms longer in this version of the protocol as compared to the input.*/
     realtype shift = 0.1;
+    
+    /* Constant voltage for testing against analytic solutions*/
+    if (protocol_number == 0 || abs( protocol_number ) > 1000 ) {
+            realtype v_temp = protocol_number;
+            v = v_temp / 1000.0; // voltage to be applied is protocol_number/1000
+    }
     
     /* sine wave*/
     if (protocol_number==1) {
