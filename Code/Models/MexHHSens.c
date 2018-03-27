@@ -89,7 +89,8 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
     //if (check_flag(&flag, "CVDlsSetDenseJacFn", 1)) return;
     flag = CVodeSetMaxStep(cvode_mem, 0.1);
     
-    pbar[0] = 0.1;//pr[0];
+    pbar[0] = pr[0];
+    if (pbar[0] == 0) pbar[0] = 0.001;
     pbar[1] = pr[1];
     pbar[2] = pr[2];
     pbar[3] = pr[3];
@@ -157,6 +158,7 @@ static void MexHHScaled(N_Vector ydot, realtype t, N_Vector y, double* pr, doubl
     
     /*Free memory*/
     N_VDestroy_Serial(y0);
+    N_VDestroy_Serial(abstol);
     N_VDestroyVectorArray_Serial(yS, numSens);  /* Free yS vector */
     CVodeFree(&cvode_mem);
     
@@ -474,9 +476,12 @@ static realtype ReturnVoltage( realtype t, realtype* pr ){
     realtype shift = 0.1;
     
     /* Constant voltage for testing against analytic solutions*/
-    if (protocol_number == 0 || abs( protocol_number ) > 1000 ) {
+    if ( abs( protocol_number ) > 1000 ) {
             realtype v_temp = protocol_number;
             v = v_temp / 1000.0; // voltage to be applied is protocol_number/1000
+    }
+    if ( abs( protocol_number ) < 0.01 ) {
+            v = 0;
     }
     
     /* sine wave*/
