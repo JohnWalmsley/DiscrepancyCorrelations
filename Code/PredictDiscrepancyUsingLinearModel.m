@@ -71,16 +71,28 @@ dVdt_tr_d = dVdt_tr(idx_d, :);
 discrepancy_tr_d = discrepancy_tr( idx_d );
 
 % calculate rates fluxes sensitivity
-[data_matrix_tr_d, factors_tr_d ] = BuildDataMatrix( conf, variables_tr_d, I_tr_d, rates_tr_d, fluxes_tr_d, ...
+[data_matrix_tr_d, factors_tr_d, names_tr_d ] = BuildDataMatrix( conf, variables_tr_d, I_tr_d, rates_tr_d, fluxes_tr_d, ...
                                                        sensitivity_tr_d, dIdp_tr_d, voltage_tr_d, dVdt_tr_d, time_tr_d );                                                
+
+% Are any members of the data matrix linearly dependent on one another?
+[ ~, ind_idx, grps ] = getLinearIndependent(data_matrix_tr_d( :, 2 : end ), 1); % leave out the constant term.
+dependent_grps = ( cellfun( 'length', grps ) > 1 );
+if any ( dependent_grps )
+    disp( 'Warning: Some predictors are linearly dependent between classes for additive discrepancy!' )
+    nonind_grp_idxs = find( dependent_grps );
+    for i=nonind_grp_idxs
+        dep_idxs = grps{ i };
+        namestring = sprintf( '%s ', names_tr_d{ dep_idxs+1 } ); % +1 due to removing const from mx.
+        disp( [ namestring 'are linearly dependent' ] );
+    end
+end                                                  
                                                    
 [ ~, data_matrix_tr_d_used, model_d, lassofig_d ] = ...
-                        LinearModelOfDiscrepancyWithInput( method, conf, discrepancy_tr_d, data_matrix_tr_d );
+                        LinearModelOfDiscrepancyWithInput( method, conf, discrepancy_tr_d, data_matrix_tr_d, names_tr_d );
 
 if ~isa( model_d, 'LinearModel' )
     included_idx = find( abs( model_d ) > 0 );
-    names = GetNames( conf );
-    included_names = names( included_idx );
+    included_names = names_tr_d( included_idx );
 end
 % predicted discrepancy
 if isa( model_d, 'LinearModel' )
@@ -118,16 +130,28 @@ discrepancy_tr_od = discrepancy_tr( idx_od ) ./ ( G * ( voltage_tr( idx_od ) - e
 % Construct the discrepancy model
 
 % calculate rates fluxes sensitivity
-[data_matrix_tr_od, factors_tr_od ] = BuildDataMatrix( conf, variables_tr_od, I_tr_od, rates_tr_od, fluxes_tr_od, ...
-                                                        sensitivity_tr_od, dIdp_tr_od, voltage_tr_od, dVdt_tr_od, time_tr_od );
+[data_matrix_tr_od, factors_tr_od, names_tr_od ] = BuildDataMatrix( conf, variables_tr_od, I_tr_od, rates_tr_od, fluxes_tr_od, ...
+            sensitivity_tr_od, dIdp_tr_od, voltage_tr_od, dVdt_tr_od, time_tr_od );
+% Are any members of the data matrix linearly dependent on one another?
+[ ~, ind_idx, grps ] = getLinearIndependent(data_matrix_tr_od( :, 2 : end ), 1); % leave out the constant term.
+dependent_grps = ( cellfun( 'length', grps ) > 1 );
+if any ( dependent_grps )
+    disp( 'Warning: Some predictors are linearly dependent between classes for additive discrepancy!' )
+    nonind_grp_idxs = find( dependent_grps );
+    for i=nonind_grp_idxs
+        dep_idxs = grps{ i };
+        namestring = sprintf( '%s ', names_tr_od{ dep_idxs+1 } ); % +1 due to removing const from mx.
+        disp( [ namestring 'are linearly dependent' ] );
+    end
+end    
+                                                    
 [ ~, data_matrix_tr_od_used, model_od, lassofig_od ] = ...
-                        LinearModelOfDiscrepancyWithInput( method, conf, discrepancy_tr_od, data_matrix_tr_od );
+        LinearModelOfDiscrepancyWithInput( method, conf, discrepancy_tr_od, data_matrix_tr_od, names_tr_od );
 
                     
 if ~isa( model_od, 'LinearModel' )
     included_idx = find( abs( model_od ) > 0 );
-    names = GetNames( conf );
-    included_names = names( included_idx );
+    included_names = names_tr_od( included_idx );
 end
 % predicted discrepancy in O
 if isa( model_od, 'LinearModel' )
@@ -139,7 +163,6 @@ if isa( model_od, 'LinearModel' )
     %model.Coefficients
 else
     odisc_modelled = data_matrix_tr_od*model_od;
-    
 end
                  
 %% Prediction Data
@@ -176,7 +199,7 @@ dVdt_pr_d = dVdt_pr(idx_d, :);
 discrepancy_pr_d = discrepancy_pr( idx_d );
 
 % Build the data matrix used for prediction
-[data_matrix_pr_d, factors_pr_d ] = BuildDataMatrix( conf, variables_pr_d, I_pr_d, rates_pr_d, fluxes_pr_d, ...
+[data_matrix_pr_d, factors_pr_d, names_pr_d ] = BuildDataMatrix( conf, variables_pr_d, I_pr_d, rates_pr_d, fluxes_pr_d, ...
                                                        sensitivity_pr_d, dIdp_pr_d, voltage_pr_d, dVdt_pr_d, time_pr_d );
 
 if isa( model_d, 'LinearModel' )
@@ -189,7 +212,7 @@ else
     disc_predicted = data_matrix_pr_d*model_d;
     included_idxs_d = abs(model_d) > 0;
     num_included_d = sum( included_idxs_d );
-    names_included_d = names( included_idxs_d );
+    names_included_d = names_pr_d( included_idxs_d );
 end
                                                    
 %--------------------------------------------------------------------------
@@ -216,7 +239,7 @@ discrepancy_pr_od = discrepancy_pr( idx_od ) ./ ( G * ( voltage_pr( idx_od ) - e
 % Construct the discrepancy model
 
 % Build the data matrix used for prediction
-[data_matrix_pr_od, factors_pr_od ] = BuildDataMatrix( conf, variables_pr_od, I_pr_od, rates_pr_od, fluxes_pr_od, ...
+[data_matrix_pr_od, factors_pr_od, names_pr_od ] = BuildDataMatrix( conf, variables_pr_od, I_pr_od, rates_pr_od, fluxes_pr_od, ...
                                                         sensitivity_pr_od, dIdp_pr_od, voltage_pr_od, dVdt_pr_od, time_pr_od );
 
 if isa( model_od, 'LinearModel' )
@@ -229,7 +252,7 @@ else
     odisc_predicted = data_matrix_pr_od*model_od;
     included_idxs_od = abs(model_od) > 0;
     num_included_od = sum( included_idxs_od );
-    names_included_od = names( included_idxs_od );
+    names_included_od = names_pr_od( included_idxs_od );
 end
 
 %% Save data and plot results
@@ -452,9 +475,16 @@ end
 
 fig_coeffs = figure( 'Units', 'Normalized', 'OuterPosition', [ 0 0 1 1 ] );
 subplot( 1,2,1)
-i = find( model_d == 0 );
-model_d_bar = model_d;
-model_d_bar( i ) = [];
+if isa( model_d, 'LinearModel' )
+    model_d_bar = model_d.Coefficients.Estimate;
+    names_included_d = model_d.CoefficientNames;
+else
+    i = find( model_d == 0 );
+    model_d_bar = model_d;
+    model_d_bar( i ) = [];
+end
+
+num_included_d = length( model_d_bar );
 
 bar( model_d_bar )
 xtick=get(gca,'xtick'); 
@@ -467,9 +497,16 @@ xtickangle( 90 )
 title( 'Coefficients d' )
 
 subplot( 1,2,2)
-i = find( model_od == 0 );
-model_od_bar = model_od;
-model_od_bar( i ) = [];
+if isa( model_d, 'LinearModel' )
+    model_od_bar = model_od.Coefficients.Estimate;
+    names_included_od = model_od.CoefficientNames;
+else
+    i = find( model_od == 0 );
+    model_od_bar = model_od;
+    model_od_bar( i ) = [];
+end
+
+num_included_od = length( model_od_bar );
 
 bar( model_od_bar )
 xtick=get(gca,'xtick'); 
