@@ -69,10 +69,7 @@ elseif strcmp( method, 'lasso' )
         partitionIdxs(  init_idx + (k1-1)*npg + 1 : init_idx+k1*npg ) = k * ones( numPerGroup-1, 1 );  
     end
     partition.Impl.indices = partitionIdxs;
-       
-    size(partitionIdxs)
-    size( discrepancy)
-    
+          
 	[ models, fitinfo ] = lasso( data_matrix_corr_lasso, discrepancy, 'CV', partition );
     %[ models, fitinfo ] = lasso( data_matrix_corr_lasso, discrepancy, 'CV', 'resubstitution' );
 
