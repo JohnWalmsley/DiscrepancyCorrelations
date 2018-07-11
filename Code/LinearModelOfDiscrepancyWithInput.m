@@ -1,9 +1,13 @@
 function [ discrepancy, data_matrix, model, fig ] = ...
-                        LinearModelOfDiscrepancyWithInput( method, conf, discrepancy, data_matrix )
+                        LinearModelOfDiscrepancyWithInput( method, conf, discrepancy, data_matrix, varnames )
 %LINEARMODELOFDISCREPANCY Summary of this function goes here
 %   Detailed explanation goes here
 
 fig = [];
+
+if nargin < 5
+    varnames = [];
+end
 
 % Discrepancy = model*data
 if (~any( strcmp( conf, 'const' ) ) && strcmp( method, 'regress' ) )
@@ -83,11 +87,20 @@ elseif strcmp( method, 'stepwiselm' )
     % note - strcmp does not take the constant vector as input:
     if any( strcmp( conf, 'const' ) )
         data_matrix_corr_swlm = data_matrix_corr( :, 2 : end );
+        if ~ isempty( varnames )
+            varnames = varnames( 2 : end );
+        end
     end
     [~, lin_indep_idx, ~] = getLinearIndependent( data_matrix_corr_swlm, 1 );
     exclude_idx = 1 : size( data_matrix_corr_swlm, 2 );
     exclude_idx(lin_indep_idx) = []; % just leaves the dependent idxs.
-    model = stepwiselm( data_matrix_corr_swlm, discrepancy, 'constant', 'Criterion', 'aic', 'Upper', 'linear', 'Verbose', 1);% 'exclude', exclude_idx );
+    if isempty( varnames )
+        model = stepwiselm( data_matrix_corr_swlm, discrepancy, 'constant', 'Criterion', 'aic', 'Upper', 'linear', 'Verbose', 1);% 'exclude', exclude_idx );
+    else
+        numvars = size( data_matrix_corr_swlm, 2 );
+        varnames{ numvars+1 } = 'discrepancy';
+        model = stepwiselm( data_matrix_corr_swlm, discrepancy, 'constant', 'Criterion', 'aic', 'Upper', 'linear', 'Verbose', 1, 'VarNames', varnames );% 'exclude', exclude_idx );
+    end
 else
     disp('Method not valid, proceeding with Least Squares' )
     model = data_matrix_corr \ discrepancy;
