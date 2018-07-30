@@ -33,7 +33,7 @@ only_core = 0;
 % Calculate variables and discrepancies
 
 [ variables_tr, I_tr, rates_tr, fluxes_tr, sensitivity_tr, dIdp_tr, ~, dVdt_tr, time_tr, G ]  ...
-                            = CalculateVariables( training_protocol, exp_ref );
+                            = CalculateVariables( training_protocol, exp_ref, training_protocol );
 [ discrepancy_tr, exp_data_tr ] = CalculateDiscrepancy( exp_ref, training_protocol, I_tr );
 voltage_tr=importdata(['../Protocols/' training_protocol '_protocol.mat']);
 
@@ -90,6 +90,7 @@ end
 
 % add noise of the order of the experimental data
 sigma = sqrt( var( exp_data_tr_d( 1 : 1000) ) );
+%sigma=0;
 % Need to get SNR about right:
 num_var = length( names_tr_d );
 if generate == 1
@@ -114,7 +115,7 @@ names_original = names_tr_d( test_idx );
 
 % Determine which traces to use for the discrepancy
 discrepancy_tr_d = sum(bsxfun( @times, mag_test*nonzero_idx, data_matrix_tr_d ),2) + sigma*randn( size(discrepancy_tr_d) );                                                   
-figure;plot( discrepancy_tr_d)
+
 [ ~, data_matrix_tr_d_used, model_d, lassofig_d ] = ...
                         LinearModelOfDiscrepancyWithInput( method, conf, discrepancy_tr_d, data_matrix_tr_d, names_tr_d );
 
@@ -210,6 +211,23 @@ set(findall( gcf, 'type', 'axes'), 'Box', 'off' );
 set(findall( gcf, 'type', 'axes'), 'FontName','Arial','FontSize',12,'FontWeight','Bold',  'LineWidth', 2);
 
 export_fig( fig_coeffs, 'coeffs.tif', '-tif' )
+
+%--------------------------------------------------------------------------
+
+% Modelled vs actual discrepancy
+figure;
+plot( time_tr_d, discrepancy_tr_d, 'r', 'LineWidth', 2 )
+hold on
+plot( time_tr_d, disc_modelled, 'b', 'LineWidth', 2 )
+
+legend( { 'Training', 'Prediction' } );
+xlabel( 'Time (ms)' )
+
+set( gcf, 'Color', 'w' );
+set(findall( gcf, 'type', 'axes'), 'Box', 'off' );
+set(findall( gcf, 'type', 'axes'), 'FontName','Arial','FontSize',12,'FontWeight','Bold',  'LineWidth', 2);
+
+export_fig( 'TrainingVsPrediction.tif', '-tif')
 
 % Back to code
 %cd ../..
