@@ -26,25 +26,25 @@ max_num_plots = 2*max( num_fit, num_pred );
 
 % load parameters for fit
 fitting_protocol = fitting_protocols{ 1 };
-l = 1;
-while l < num_fit
-    l = l+1;
-    fitting_protocol = [ fitting_protocol '_' fitting_protocols{ l } ];
-end
+% l = 1;
+% while l < num_fit
+%     l = l+1;
+%     fitting_protocol = [ fitting_protocol '_' fitting_protocols{ l } ];
+% end
 
 prediction_protocol = prediction_protocols{ 1 };
-m = 1;
-while m < num_pred
-    m = m+1;
-    prediction_protocol = [ prediction_protocol '_' prediction_protocols{ m } ];
-end
+% m = 1;
+% while m < num_pred
+%     m = m+1;
+%     prediction_protocol = [ prediction_protocol '_' prediction_protocols{ m } ];
+% end
 
 time_max = 0;
 for pr = 1 : num_fit
     
     protocol = fitting_protocols{ pr };
     % Simulate data
-    [ ~, I, ~, ~, ~, ~, V, ~, time, G ] = CalculateVariables( protocol, exp_ref, fitting_protocol );
+    [ ~, I, ~, ~, ~, ~, V, ~, time, G ] = CalculateVariables( protocol, exp_ref, fitting_protocols );
 
     % load experimental data
     I_exp = importdata([ '../ExperimentalData/' exp_ref '/' protocol '_',exp_ref,'_dofetilide_subtracted_leak_subtracted.mat']);
@@ -94,7 +94,7 @@ end
 for pr = 1 : num_pred
     protocol = prediction_protocols{ pr };
     % Simulate data
-    [ ~, I, ~, ~, ~, ~, V, ~, time, G ] = CalculateVariables( protocol, exp_ref, fitting_protocol );
+    [ ~, I, ~, ~, ~, ~, V, ~, time, G ] = CalculateVariables( protocol, exp_ref, fitting_protocols );
     
     % load experimental data
     I_exp = importdata([ '../ExperimentalData/' exp_ref '/' protocol '_',exp_ref,'_dofetilide_subtracted_leak_subtracted.mat']);
@@ -147,6 +147,6 @@ set(findall( gcf, 'type', 'axes'), 'Box', 'off' );
 set(findall( gcf, 'type', 'axes'), 'FontName','Arial','FontSize',12,'FontWeight','Bold',  'LineWidth', 2);
 set(findall( gcf, 'type', 'axes'), 'xLim', [ 0 time_max]);
 
-export_fig( gcf, [ 'Figures/PlotDiscrepancyVsDiscrepancyInOpen_' fitting_protocol '_' prediction_protocol '.tif' ], '-tif' )
+export_fig( gcf, [ 'Figures/PlotDiscrepancyVsDiscrepancyInOpen_' fitting_protocol '_' prediction_protocol '.png' ], '-png' )
 
 end
