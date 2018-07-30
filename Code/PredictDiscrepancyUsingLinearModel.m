@@ -27,7 +27,6 @@ end
 eps = 5;
 
 %% Training Data
-
 % Calculate variables and discrepancies
 
 [ variables_tr, I_tr, rates_tr, fluxes_tr, sensitivity_tr, dIdp_tr, ~, dVdt_tr, time_tr, G ]  ...
@@ -256,6 +255,52 @@ else
 end
 
 %% Save data and plot results
+% some config for naming files
+if strcmp( method, 'lasso' )
+    methodName = 'LASSO';
+elseif strcmp( method, 'stepwiselm' )
+    methodName = 'StepwiseLM';
+else
+    methodName = method;
+end
+
+if only_core == 1
+    dataTypeName = 'core';
+else
+    dataTypeName = 'full';
+end
+
+if strcmp( training_protocol, 'sine_wave' )
+    trainName= 'SW';
+elseif strcmp( training_protocol, 'ap' )
+    trainName = 'AP';
+elseif strcmp( training_protocol, 'maz_wang_div_diff' )
+    trainName = 'MWDD';
+elseif strcmp( training_protocol, 'max_diff' )
+    trainName = 'MD';
+elseif strcmp( training_protocol, 'equal_proportions' )
+    trainName = 'EP';
+elseif strcmp( training_protocol, 'original_sine' )
+    trainName = 'OSW';
+else
+    trainName = 'TR';
+end
+    
+if strcmp( prediction_protocol, 'sine_wave' )
+    predName= 'SW';
+elseif strcmp( prediction_protocol, 'ap' )
+    predName = 'AP';
+elseif strcmp( prediction_protocol, 'maz_wang_div_diff' )
+    predName = 'MWDD';
+elseif strcmp( prediction_protocol, 'max_diff' )
+    predName = 'MD';
+elseif strcmp( prediction_protocol, 'equal_proportions' )
+    predName = 'EP';
+elseif strcmp( prediction_protocol, 'original_sine' )
+    predName = 'OSW';
+else
+    predName = 'PR';
+end
 
 current_time = clock;
 current_time = fix( current_time );
@@ -295,12 +340,12 @@ ylim_od = 0.5*( [ od_min od_max ] );
 subplot( 2,2,1 )
 plot( time_tr_d, exp_data_tr_d, 'r' )
 hold on
-plot( time_tr_d, I_tr_d, 'b' )
-plot( time_tr_d, I_tr_d + disc_modelled, 'k' ) 
+plot( time_tr_d, I_tr_d, 'b', 'LineWidth', 2 )
+plot( time_tr_d, I_tr_d + disc_modelled, 'k', 'LineWidth', 2 ) 
 hold off
 xlabel( 'Time (ms)' )
 ylabel( 'Current (nA)' )
-title( [ training_protocol, ' training d' ], 'Interpreter', 'None' )
+title( [ trainName, ' Training d' ], 'Interpreter', 'None' )
 ylim(ylim_d);
 
 disc_base_tr_d = sqrt( sum( ( exp_data_tr_d - I_tr_d ).^2 ) );
@@ -311,12 +356,12 @@ legend( { 'Iexp', [ 'Isim ' num2str( disc_base_tr_d ) ], [ 'Isim+d '  num2str( d
 subplot( 2,2,2 )
 plot( time_tr_od, exp_data_tr_od, 'r' )
 hold on
-plot( time_tr_od, I_tr_od, 'b' )
-plot( time_tr_od, I_tr_od + G*odisc_modelled.*( voltage_tr_od - erev ), 'k' ) 
+plot( time_tr_od, I_tr_od, 'b', 'LineWidth', 2 )
+plot( time_tr_od, I_tr_od + G*odisc_modelled.*( voltage_tr_od - erev ), 'k', 'LineWidth', 2 ) 
 hold off
 xlabel( 'Time (ms)' )
 ylabel( 'Current (nA)' )
-title( [ training_protocol, ' training od' ], 'Interpreter', 'None' )
+title( [ trainName, ' Training d{_o}' ], 'Interpreter', 'Tex' )
 ylim(ylim_od);
 
 disc_base_tr_od = sqrt( sum( ( exp_data_tr_od - I_tr_od ).^2 ) );
@@ -327,12 +372,12 @@ legend( { 'Iexp', [ 'Isim ' num2str( disc_base_tr_od ) ], [ 'Isim+G.Od.(V-E) '  
 subplot( 2,2,3 )
 plot( time_pr_d, exp_data_pr_d, 'r' )
 hold on
-plot( time_pr_d, I_pr_d, 'b' )
-plot( time_pr_d, I_pr_d + disc_predicted, 'k' )
+plot( time_pr_d, I_pr_d, 'b', 'LineWidth', 2 )
+plot( time_pr_d, I_pr_d + disc_predicted, 'k', 'LineWidth', 2 )
 hold off
 xlabel( 'Time (ms)' )
 ylabel( 'Current (nA)' )
-title( [ prediction_protocol, ' prediction d' ], 'Interpreter', 'None' )
+title( [ predName, ' Prediction d' ], 'Interpreter', 'None' )
 ylim(ylim_d);
 
 disc_base_pr_d = sqrt( sum( ( exp_data_pr_d - I_pr_d ).^2 ) );
@@ -343,12 +388,12 @@ legend( { 'Iexp', [ 'Isim ' num2str( disc_base_pr_d ) ], [ 'Isim+d '  num2str( d
 subplot( 2,2,4 )
 plot( time_pr_od, exp_data_pr_od, 'r' )
 hold on
-plot( time_pr_od, I_pr_od, 'b' )
-plot( time_pr_od, I_pr_od + G*odisc_predicted.*( voltage_pr_od - erev ), 'k' ) 
+plot( time_pr_od, I_pr_od, 'b', 'LineWidth', 2 )
+plot( time_pr_od, I_pr_od + G*odisc_predicted.*( voltage_pr_od - erev ), 'k', 'LineWidth', 2  ) 
 hold off
 xlabel( 'Time (ms)' )
 ylabel( 'Current (nA)' )
-title( [ prediction_protocol, ' prediction od' ], 'Interpreter', 'None' )
+title( [ predName, ' prediction d{_o}' ], 'Interpreter', 'Tex' )
 ylim(ylim_od);
 
 disc_base_pr_od = sqrt( sum( ( exp_data_pr_od - I_pr_od ).^2 ) );
@@ -362,7 +407,8 @@ set(findall( fig_currents, 'type', 'axes'), 'Box', 'off' );
 set(findall( fig_currents, 'type', 'axes'), 'FontName','Arial','FontSize',12,'FontWeight','Bold',  'LineWidth', 2);
 set(findall( fig_currents, 'type', 'axes'), 'xLim', [ time_min time_max]);
 
-export_fig( fig_currents, [ 'CurrentWithDiscrepancy.tif' ], '-tif' )
+export_fig( fig_currents, [ methodName '_' trainName '_' predName '_' dataTypeName '_currents.tif' ], '-tif' )
+export_fig( fig_currents, [ methodName '_' trainName '_' predName '_' dataTypeName '_currents.png' ], '-png' )
 
 %--------------------------------------------------------------------------
 % make plot of discrepancy
@@ -381,13 +427,13 @@ ylim_od = ( [ od_min od_max ] );
 
 
 subplot( 2,2,1 )
-plot( time_tr_d, discrepancy_tr_d, 'b' )
+plot( time_tr_d, discrepancy_tr_d, 'b', 'LineWidth', 2  )
 hold on
-plot( time_tr_d, disc_modelled, 'k' ) 
+plot( time_tr_d, disc_modelled, 'k', 'LineWidth', 2  ) 
 hold off
 xlabel( 'Time (ms)' )
 ylabel( 'Current (nA)' )
-title( [ training_protocol, ' training d' ], 'Interpreter', 'None' )
+title( [ trainName, ' Training d' ], 'Interpreter', 'None' )
 ylim(ylim_d);
 
 disc_base_tr_d = sqrt( sum( discrepancy_tr_d.^2 ) );
@@ -396,13 +442,13 @@ disc_model_tr_d = sqrt( sum( (discrepancy_tr_d-disc_modelled).^2 ) );
 legend( { [ 'Iexp-Isim ' num2str( disc_base_tr_d ) ], [ 'Iexp-(Isim+d) '  num2str( disc_model_tr_d ) ] })
 
 subplot( 2,2,2 )
-plot( time_tr_od, discrepancy_tr_od, 'b' )
+plot( time_tr_od, discrepancy_tr_od, 'b', 'LineWidth', 2 )
 hold on
-plot( time_tr_od, odisc_modelled, 'k' ) 
+plot( time_tr_od, odisc_modelled, 'k', 'LineWidth', 2  ) 
 hold off
 xlabel( 'Time (ms)' )
 ylabel( 'Current (nA)' )
-title( [ training_protocol, ' training od' ], 'Interpreter', 'None' )
+title( [ trainName, ' training d{_o}' ], 'Interpreter', 'Tex' )
 ylim(ylim_od);
 
 disc_base_tr_od = sqrt( sum( discrepancy_tr_od.^2 ) );
@@ -411,13 +457,13 @@ disc_model_tr_od = sqrt( sum( (discrepancy_tr_od-odisc_modelled).^2 ) );
 legend( { [ 'Odexp ' num2str( disc_base_tr_od ) ], [ 'Odexp-Od '  num2str( disc_model_tr_od ) ] })
 
 subplot( 2,2,3 )
-plot( time_pr_d, discrepancy_pr_d, 'b' )
+plot( time_pr_d, discrepancy_pr_d, 'b', 'LineWidth', 2  )
 hold on
-plot( time_pr_d, disc_predicted, 'k' )
+plot( time_pr_d, disc_predicted, 'k', 'LineWidth', 2  )
 hold off
 xlabel( 'Time (ms)' )
 ylabel( 'Current (nA)' )
-title( [ prediction_protocol, ' prediction d' ], 'Interpreter', 'None' )
+title( [ predName, ' prediction d' ], 'Interpreter', 'None' )
 ylim(ylim_d);
 
 disc_base_pr_d = sqrt( sum( discrepancy_pr_d.^2 ) );
@@ -426,13 +472,13 @@ disc_model_pr_d = sqrt( sum( (discrepancy_pr_d-disc_predicted).^2 ) );
 legend( {[ 'Iexp-Isim ' num2str( disc_base_pr_d ) ], [ 'Iexp-(Isim+d) '  num2str( disc_model_pr_d ) ] })
 
 subplot( 2,2,4 )
-plot( time_pr_od, discrepancy_pr_od, 'b' )
+plot( time_pr_od, discrepancy_pr_od, 'b', 'LineWidth', 2  )
 hold on
-plot( time_pr_od, odisc_predicted, 'k' ) 
+plot( time_pr_od, odisc_predicted, 'k', 'LineWidth', 2  ) 
 hold off
 xlabel( 'Time (ms)' )
 ylabel( 'Current (nA)' )
-title( [ prediction_protocol, ' prediction od' ], 'Interpreter', 'None' )
+title( [ predName, ' Prediction d{_o}' ], 'Interpreter', 'Tex' )
 ylim(ylim_od);
 
 disc_base_pr_od = sqrt( sum( ( discrepancy_pr_od).^2 ) );
@@ -446,7 +492,8 @@ set(findall( fig_currents, 'type', 'axes'), 'Box', 'off' );
 set(findall( fig_currents, 'type', 'axes'), 'FontName','Arial','FontSize',12,'FontWeight','Bold',  'LineWidth', 2);
 set(findall( fig_currents, 'type', 'axes'), 'xLim', [ time_min time_max]);
 
-export_fig( fig_currents, [ 'Discrepancy.tif' ], '-tif' )
+export_fig( fig_currents, [ methodName '_' trainName '_' predName '_' dataTypeName '_discrepancy.tif' ], '-tif' )
+export_fig( fig_currents, [ methodName '_' trainName '_' predName '_' dataTypeName '_discrepancy.png' ], '-png' )
 
 %--------------------------------------------------------------------------
 if ~isempty( lassofig_d )
@@ -455,18 +502,19 @@ if ~isempty( lassofig_d )
     set( gcf, 'Color', 'w' );
     set(findall( gcf, 'type', 'axes'), 'Box', 'off' );
     set(findall( gcf, 'type', 'axes'), 'FontName','Arial','FontSize',12,'FontWeight','Bold',  'LineWidth', 2);
-    
-    export_fig( lassofig_d, 'LassoMSE_d.tif', '-tif' )
+    export_fig( lassofig_d, [ methodName '_' trainName '_' predName '_' dataTypeName '_lambda_d.tif' ], '-tif' )
+    export_fig( lassofig_d, [ methodName '_' trainName '_' predName '_' dataTypeName '_lambda_d.png' ], '-png' )
 end
 
 if ~isempty( lassofig_od )
     figure(lassofig_od )
-    title( 'Cross-validated MSE of Lasso fit: od')
+    title( 'Cross-validated MSE of Lasso fit: d{_o}')
     set( gcf, 'Color', 'w' );
     set(findall( gcf, 'type', 'axes'), 'Box', 'off' );
     set(findall( gcf, 'type', 'axes'), 'FontName','Arial','FontSize',12,'FontWeight','Bold',  'LineWidth', 2);
     
-    export_fig( lassofig_od, 'LassoMSE_od.tif', '-tif' )
+    export_fig( lassofig_od, [ methodName '_' trainName '_' predName '_' dataTypeName '_lambda_od.tif' ], '-tif' )
+    export_fig( lassofig_od, [ methodName '_' trainName '_' predName '_' dataTypeName '_lambda_od.png' ], '-png' )
 end
 
 %--------------------------------------------------------------------------
@@ -516,13 +564,14 @@ newXTick=linspace(xMin,xMax,num_included_od);
 set(gca,'xtick', newXTick );
 xticklabels( names_included_od )
 xtickangle( 90 )
-title( 'Coefficients od' )
+title( 'Coefficients d{_o}' )
 
 set( gcf, 'Color', 'w' );
 set(findall( gcf, 'type', 'axes'), 'Box', 'off' );
 set(findall( gcf, 'type', 'axes'), 'FontName','Arial','FontSize',12,'FontWeight','Bold',  'LineWidth', 2);
 
-export_fig( fig_coeffs, 'coeffs.tif', '-tif' )
+export_fig( fig_coeffs, [ methodName '_' trainName '_' predName '_' dataTypeName '_coefficients.tif' ], '-tif' )
+export_fig( fig_coeffs, [ methodName '_' trainName '_' predName '_' dataTypeName '_coefficients.png' ], '-png' )
 
 % Back to code
 cd ../..
