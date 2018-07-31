@@ -2,7 +2,7 @@
 
 This repository contains files used for predicting model discrepancy using linear regression methods. This project is built on the work of [Beattie et al](https://physoc.onlinelibrary.wiley.com/doi/abs/10.1113/JP275733), whose repository is available [here](https://github.com/mirams/sine-wave). To use this code you will need to add the [SharedFunctions repository](https://github.com/JohnWalmsley/SharedFunctions) and its sub-folders to your Matlab path. This repository also requires two functions from the Mathworks File Exchange to be on the Matlab path, [export_fig.m]() and [getLinearIndependent.m]().
 
-Many of these files use a variable called `conf`. `Conf` is a cell that specifies which predictors should be used when constructing a linear model of discrepancy. The full options for `conf` are as follows:
+Many of these files use a variable called `conf`. `conf` is a cell that specifies which predictors should be used when constructing a linear model of discrepancy. The full options for `conf` are as follows:
 <a name="conf"/>
 `conf = { 'const', 'variables', 'I', 'rates', 'fluxes', 'sensitivity', 'dIdp', 'voltage', 'dVdt', 'time', 'normalise', 'thin' };`
 
@@ -24,7 +24,9 @@ The order of the entries does not matter. Including a predictor in `conf` means 
 1. `dVdt`
 1. `time`
 1. a matrix of scaling factors `input_factors` (2xN matrix) (optional)
+
 Outputs:
+
 1. A matrix for regression `mx` (matrix)
 1. Scaling factors `factors` (2xN matrix)
 1. Names of the linearly independent predictors in the matrix `names` (cell)
@@ -79,6 +81,7 @@ The code will then plot the currents with the predicted discrepancy, the predict
 1. number of repeats `num_repeats=10` (integer) (optional)
 1. noise `noise=1` (logical) (optional)
 1. [conf](#conf) (optional)
+
 This file constructs `num_repeats` discrepancy models at random from the variables in `conf` produced from simulations of cell `exp_ref` fitted using `training_protocol`. A random number of variables from 1-20 are included in each model. Both LASSO and StepwiseLM are used to construct models using [BuildDataMatrix.m](Code/BuildDataMatrix.m) and [LinearModelOfDiscrepancyWithInput.m](Code/LinearModelOfDiscrepancyWithInput.m). The MSE between the coefficients of the original constructed model and the model derived by regression is used to quantify the quality of the fit. A plot is then produced showing the relationship between number of predictors in the original model and quality of fit for both regression methods.
 
 [TestPredictDiscrepancyUsingLinearModel.m](Code/TestPredictDiscrepancyUsingLinearModel.m): Code used for testing the effectiveness of regression techniques. Takes the following as input:
@@ -87,6 +90,7 @@ This file constructs `num_repeats` discrepancy models at random from the variabl
 1. method `method` (string)
 1. variable indices `test_idx` (integer vector) (optional)
 1. [conf](#conf) (optional)
+
 This file constructs one discrepancy model from the variables in `conf` produced from simulations of cell `exp_ref` fitted using `training_protocol`. The included variables can either be specified using `test_idx`, or generated if not specified. If generated, a random number of variables from 1-20 are included in the model. The `method` is used to construct models using [BuildDataMatrix.m](Code/BuildDataMatrix.m) and [LinearModelOfDiscrepancyWithInput.m](Code/LinearModelOfDiscrepancyWithInput.m). Two plots are produced, one showing the fit of the the model derived by regression to the original constructed model, and one showing the coefficients of both models.
 
 #### Plotting
@@ -95,6 +99,7 @@ This file constructs one discrepancy model from the variables in `conf` produced
 1. Cell identifier `exp_ref` (string)
 1. Fitting protocols `fitting_protocols` (cell)
 1. Prediction protocols `fitting_protocols` (cell)
+
 This file plots the discrepancy and the discrepancy in open probability for the protocols used to fit the model (top row) and the protocols being predicted (bottom row). Saves into a folder called `'Figures/'`.
 
 [PlotSensitivityVsDiscrepancy.m](Code/PlotSensitivityVsDiscrepancy.m): Creates plots of parameter sensitivity vs discrepancy for all 3 variables and 8 parameters in the HH model.
@@ -103,28 +108,30 @@ This file plots the discrepancy and the discrepancy in open probability for the 
 1. Cell identifier `exp_ref` (string)
 1. Fitting protocols `fitting_protocols` (cell)
 1. Prediction protocols `fitting_protocols` (cell)
+
 This file plots the simulation and the experimental data together, and then the discrepancy between the two for the protocols used to fit the model (top row) and the protocols being predicted (bottom row). Saves into a folder called `'Figures/'`.
 
-[PlotSimulationProtocols.m](Code/PlotSimulationProtocols.m): This sctipt plots the voltage protocols and the currents generated used in this project (`'sine_wave'`,`'ap'`,`'original_sine'`, `'eaqual_proportions'`, `'maz_wang_div_diff'`). The 'core' of the protocol as used in [PredictDiscrepancyUsingLinearModel.m](Code/PredictDiscrepancyUsingLinearModel.m) is highlighted in red.
+[PlotSimulationProtocols.m](Code/PlotSimulationProtocols.m): This script plots the voltage protocols and the currents generated used in this project (`'sine_wave'`,`'ap'`,`'original_sine'`, `'eaqual_proportions'`, `'maz_wang_div_diff'`). The 'core' of the protocol as used in [PredictDiscrepancyUsingLinearModel.m](Code/PredictDiscrepancyUsingLinearModel.m) is highlighted in red.
 
 [PlotVoltageTraces.m](Code/PlotVoltageTraces.m): Input:
 1. Fitting protocols `fitting_protocols` (cell)
 1. Prediction protocols `fitting_protocols` (cell)
+
 Plots a selection of voltage traces.
 
 ### Old Code
 
-[CompareEffectsOfLag.m](Code/Old\ Code/CompareEffectsOfLag.m) Shows the minor difference that the effect of a delay in the amplifier reaching the desired membrane potential will have. Uses the `ap_lag` protocol generated using [CalculateImposedVoltage.m](CalculateImposedVoltage.m)
+[CompareEffectsOfLag.m](https://github.com/JohnWalmsley/DiscrepancyCorrelations/blob/master/Code/Old%20Code/CompareEffectsOfLag.m) Shows the minor difference that the effect of a delay in the amplifier reaching the desired membrane potential will have. Uses the `ap_lag` protocol generated using [CalculateImposedVoltage.m](CalculateImposedVoltage.m)
 
-[CompareParameterFits.m](Code/Old\ Code/CompareParameterFits.m): Compares fits to the sine wave only, fits to the AP only, and a fit to both protocols at the same time in terms of the currents generated
+[CompareParameterFits.m](https://github.com/JohnWalmsley/DiscrepancyCorrelations/blob/master/Code/Old%20Code/CompareParameterFits.m): Compares fits to the sine wave only, fits to the AP only, and a fit to both protocols at the same time in terms of the currents generated.
 
-[CompareParameterFits_SummaryPlots.m](Code/Old\ Code/CompareParameterFits_SummaryPlots.m): Compares fits to the sine wave only, fits to the AP only, and a fit to both protocols at the same time in terms of summary plots such as an I-V curve and the activation, deactivation, and inactivation protocols.
+[CompareParameterFits_SummaryPlots.m](https://github.com/JohnWalmsley/DiscrepancyCorrelations/blob/master/Code/Old%20Code/CompareParameterFits_SummaryPlots.m): Compares fits to the sine wave only, fits to the AP only, and a fit to both protocols at the same time in terms of summary plots such as an I-V curve and the activation, deactivation, and inactivation protocols.
 
-[DiscrepancyInOpenProbability.m](Code/Old\ Code/DiscrepancyInOpenProbability.m): Replaced by [PredictDiscrepancyUsingLinearModel.m](Code/PredictDiscrepancyUsingLinearModel.m)
+[DiscrepancyInOpenProbability.m](https://github.com/JohnWalmsley/DiscrepancyCorrelations/blob/master/Code/Old%20Code/DiscrepancyInOpenProbability.m): Replaced by [PredictDiscrepancyUsingLinearModel.m](Code/PredictDiscrepancyUsingLinearModel.m)
 
-[LinearModelOfDiscrepancy.m](Code/Old\ Code/LinearModelOfDiscrepancy.m): Replaced by [LinearModelOfDiscrepancyWithInput.m](Code/LinearModelOfDiscrepancyWithInput.m)
+[LinearModelOfDiscrepancy.m](https://github.com/JohnWalmsley/DiscrepancyCorrelations/blob/master/Code/Old%20Code/LinearModelOfDiscrepancy.m): Replaced by [LinearModelOfDiscrepancyWithInput.m](Code/LinearModelOfDiscrepancyWithInput.m)
 
-[PredictDiscrepancy.m](Code/Old\ Code/PredictDiscrepancy.m):Replaced by [PredictDiscrepancyUsingLinearModel.m](Code/PredictDiscrepancyUsingLinearModel.m)
+[PredictDiscrepancy.m](https://github.com/JohnWalmsley/DiscrepancyCorrelations/blob/master/Code/Old%20Code/PredictDiscrepancy.m):Replaced by [PredictDiscrepancyUsingLinearModel.m](Code/PredictDiscrepancyUsingLinearModel.m)
 
 ## ExperimentalData
 
