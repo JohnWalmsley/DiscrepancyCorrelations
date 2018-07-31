@@ -229,6 +229,7 @@ set(findall( gcf, 'type', 'axes'), 'Box', 'off' );
 set(findall( gcf, 'type', 'axes'), 'FontName','Arial','FontSize',12,'FontWeight','Bold',  'LineWidth', 2);
 
 export_fig( 'TrainingVsPrediction.tif', '-tif')
+export_fig( 'TrainingVsPrediction.png', '-png')
 
 % Back to code
 %cd ../..
