@@ -37,7 +37,7 @@ cd ..
 cd ..
 cd Code/
 % Simulate model with parameters identified as providing bet fit to sine wave
-[ I, Y, S, dIdp ] = SimulatingDataSens({'ap'},MP,V,temperature);
+[ I, Y, S, dIdp ] = SimulatingDataSens({'ap'},MP,V,temperature,35);
 figure;plot(I)
 hold on 
 plot(E)
