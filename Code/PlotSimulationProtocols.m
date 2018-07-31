@@ -1,3 +1,5 @@
+addpath MathworksFileExchange/export_fig/
+
 fig = figure( 'Units', 'Normalized', 'OuterPosition', [ 0 0 1 1 ] );
 
 % sine wave

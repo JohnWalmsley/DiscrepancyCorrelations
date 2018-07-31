@@ -4,6 +4,7 @@ function PlotSensitivityVsDiscrepancy()
 % and compares with experimental recording from cell 5
 
 addpath Models
+addpath MathworksFileExchange/export_fig/
 
 model = 'hh';
 fitting_protocol='sine_wave';

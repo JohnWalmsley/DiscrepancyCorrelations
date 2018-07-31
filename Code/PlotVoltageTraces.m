@@ -2,7 +2,7 @@ function PlotVoltageTraces( fitting_protocols, prediction_protocols )
 
 addpath ../../SharedFunctions/
 addpath ../../SharedFunctions/Models/
-addpath ~/MathworksFileExchange/export_fig/
+addpath MathworksFileExchange/export_fig/
 
 data_fig = figure( 'Units', 'Normalized', 'OuterPosition', [ 0 0 1 1 ] );
 

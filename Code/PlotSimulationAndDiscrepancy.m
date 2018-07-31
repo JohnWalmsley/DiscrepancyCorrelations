@@ -2,7 +2,7 @@ function PlotSimulationAndDiscrepancy( exp_ref, fitting_protocols, prediction_pr
 
 addpath ../../SharedFunctions/
 addpath ../../SharedFunctions/Models/
-addpath ~/MathworksFileExchange/export_fig/
+addpath MathworksFileExchange/export_fig/
 
 model = 'hh';
 seed = '30082148';
