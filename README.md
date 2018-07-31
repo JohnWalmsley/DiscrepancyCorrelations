@@ -114,17 +114,17 @@ Plots a selection of voltage traces.
 
 ### Old Code
 
-[CompareEffectsOfLag.m](Code/Old Code/CompareEffectsOfLag.m) Shows the minor difference that the effect of a delay in the amplifier reaching the desired membrane potential will have. Uses the `ap_lag` protocol generated using [CalculateImposedVoltage.m](CalculateImposedVoltage.m)
+[CompareEffectsOfLag.m](Code/Old\ Code/CompareEffectsOfLag.m) Shows the minor difference that the effect of a delay in the amplifier reaching the desired membrane potential will have. Uses the `ap_lag` protocol generated using [CalculateImposedVoltage.m](CalculateImposedVoltage.m)
 
-[CompareParameterFits.m](Code/Old Code/CompareParameterFits.m): Compares fits to the sine wave only, fits to the AP only, and a fit to both protocols at the same time in terms of the currents generated
+[CompareParameterFits.m](Code/Old\ Code/CompareParameterFits.m): Compares fits to the sine wave only, fits to the AP only, and a fit to both protocols at the same time in terms of the currents generated
 
-[CompareParameterFits_SummaryPlots.m](Code/Old Code/CompareParameterFits_SummaryPlots.m): Compares fits to the sine wave only, fits to the AP only, and a fit to both protocols at the same time in terms of summary plots such as an I-V curve and the activation, deactivation, and inactivation protocols.
+[CompareParameterFits_SummaryPlots.m](Code/Old\ Code/CompareParameterFits_SummaryPlots.m): Compares fits to the sine wave only, fits to the AP only, and a fit to both protocols at the same time in terms of summary plots such as an I-V curve and the activation, deactivation, and inactivation protocols.
 
-[DiscrepancyInOpenProbability.m](Code/Old Code/DiscrepancyInOpenProbability.m): Replaced by [PredictDiscrepancyUsingLinearModel.m](Code/PredictDiscrepancyUsingLinearModel.m)
+[DiscrepancyInOpenProbability.m](Code/Old\ Code/DiscrepancyInOpenProbability.m): Replaced by [PredictDiscrepancyUsingLinearModel.m](Code/PredictDiscrepancyUsingLinearModel.m)
 
-[LinearModelOfDiscrepancy.m](Code/Old Code/LinearModelOfDiscrepancy.m): Replaced by [LinearModelOfDiscrepancyWithInput.m](Code/LinearModelOfDiscrepancyWithInput.m)
+[LinearModelOfDiscrepancy.m](Code/Old\ Code/LinearModelOfDiscrepancy.m): Replaced by [LinearModelOfDiscrepancyWithInput.m](Code/LinearModelOfDiscrepancyWithInput.m)
 
-[PredictDiscrepancy.m](Code/Old Code/PredictDiscrepancy.m):Replaced by [PredictDiscrepancyUsingLinearModel.m](Code/PredictDiscrepancyUsingLinearModel.m)
+[PredictDiscrepancy.m](Code/Old\ Code/PredictDiscrepancy.m):Replaced by [PredictDiscrepancyUsingLinearModel.m](Code/PredictDiscrepancyUsingLinearModel.m)
 
 ## ExperimentalData
 
