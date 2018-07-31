@@ -64,7 +64,7 @@ end
 1. Prediction protocol `prediction_protocol` (string)
 1. Method `method` (string)
 1. Identifier for how much of the trace to use `only_core = 0` (logical)(optional)
-1. Fitting protocol used to parameterise the ODE model `fitting_protocol = 'sine_wave'` (cell or string) (optional)
+1. Fitting protocol used to parameterise the ODE model `fitting_protocol = {'sine_wave'}` (cell or string) (optional)
 1. `conf`
 
 Options for the `method` are the same as for [LinearModelOfDiscrepancyWithInput.m](#LinearModelOfDiscrepancyWithInput). The code calculates the variables for the data used to train the model using [CalculateVariables.m](https://github.com/JohnWalmsley/SharedFunctions/blob/master/CalculateVariables.m), and the discrepancy between the model and the experiment for that protocol (defined as simulated current - recorded current) using [CalculateDiscrepancy.m](https://github.com/JohnWalmsley/SharedFunctions/blob/master/CalculateVariables.m). Indices are then removed to avoid the capacitative spikes and (if `only_core=1`) the activation and deactivation steps at the start and finish of the protocol using [GetNoSpikeIdx.m](https://github.com/JohnWalmsley/SharedFunctions/blob/master/GetNoSpikeIdx.m) and [GetCoreOfProtocolIdx.m](https://github.com/JohnWalmsley/SharedFunctions/blob/master/GetCoreOfProtocolIdx.m). The data matrix is then built from the variables produced by [CalculateDiscrepancy.m](https://github.com/JohnWalmsley/SharedFunctions/blob/master/CalculateVariables.m) using [BuildDataMatrix.m](Code/BuildDataMatrix.m). A second test for linear independence is performed on the data matrix which throws a warning in case two of the different sorts of variables included are linearly dependent, which should not happen. The model is then constructed using [LinearModelOfDiscrepancyWithInput.m](Code/LinearModelOfDiscrepancyWithInput.m). This process is repeated for the discrepancy in the open probability, creating a second model.
@@ -111,7 +111,7 @@ This file plots the discrepancy and the discrepancy in open probability for the 
 
 This file plots the simulation and the experimental data together, and then the discrepancy between the two for the protocols used to fit the model (top row) and the protocols being predicted (bottom row). Saves into a folder called `'Figures/'`.
 
-[PlotSimulationProtocols.m](Code/PlotSimulationProtocols.m): This script plots the voltage protocols and the currents generated used in this project (`'sine_wave'`,`'ap'`,`'original_sine'`, `'eaqual_proportions'`, `'maz_wang_div_diff'`). The 'core' of the protocol as used in [PredictDiscrepancyUsingLinearModel.m](Code/PredictDiscrepancyUsingLinearModel.m) is highlighted in red.
+[PlotSimulationProtocols.m](Code/PlotSimulationProtocols.m): This script plots the voltage protocols and the currents generated used in this project (`'sine_wave'`,`'ap'`,`'original_sine'`, `'equal_proportions'`, `'maz_wang_div_diff'`). The 'core' of the protocol as used in [PredictDiscrepancyUsingLinearModel.m](Code/PredictDiscrepancyUsingLinearModel.m) is highlighted in red.
 
 [PlotVoltageTraces.m](Code/PlotVoltageTraces.m): Input:
 1. Fitting protocols `fitting_protocols` (cell)
