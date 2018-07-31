@@ -7,7 +7,8 @@ function BatchTestPredictDiscrepancyUsingLinearModel( exp_ref, training_protocol
 % and so d = ( data-Isim ) / (G*(V-V_E)) outside V_E + eps
 
 addpath( genpath( '../../SharedFunctions' ) )
-addpath ../../../MathworksFileExchange/getLinearDependent/
+addpath MathworksFileExchange/getLinearDependent/
+addpath MathworksFileExchange/export_fig/
 
 if isa( training_protocol, 'char' )
     tp_char = training_protocol;

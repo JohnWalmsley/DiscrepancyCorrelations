@@ -1,4 +1,4 @@
-function PredictDiscrepancyUsingLinearModel( exp_ref, training_protocol, prediction_protocol, method, only_core, conf )
+function PredictDiscrepancyUsingLinearModel( exp_ref, training_protocol, prediction_protocol, method, only_core, fitting_protocol, conf )
 
 
 %% Defining the discrepancy in the open probability:
@@ -7,7 +7,8 @@ function PredictDiscrepancyUsingLinearModel( exp_ref, training_protocol, predict
 % and so d = ( data-Isim ) / (G*(V-V_E)) outside V_E + eps
 
 addpath( genpath( '../../SharedFunctions' ) )
-addpath ../../../MathworksFileExchange/getLinearDependent/
+addpath MathworksFileExchange/getLinearDependent/
+addpath MathworksFileExchange/export_fig/
 
 %% Configuration
 
@@ -16,6 +17,10 @@ if nargin < 5
 end
 
 if nargin < 6
+    fitting_protocol = 'sine_wave';
+end
+
+if nargin < 7
     conf = { 'const', 'variables', 'I', 'rates', 'fluxes', 'sensitivity', 'dIdp', 'voltage', 'dVdt', 'time', 'normalise', 'thin' };
     %conf = { 'const', 'variables', 'I', 'rates', 'dIdp', 'voltage', 'dVdt', 'time', 'normalise', 'thin' };
     %conf = { 'const', 'variables', 'I', 'rates', 'fluxes', 'dIdp', 'voltage', 'dVdt', 'time', 'normalise' };
@@ -30,7 +35,7 @@ eps = 5;
 % Calculate variables and discrepancies
 
 [ variables_tr, I_tr, rates_tr, fluxes_tr, sensitivity_tr, dIdp_tr, ~, dVdt_tr, time_tr, G ]  ...
-                            = CalculateVariables( training_protocol, exp_ref );
+                            = CalculateVariables( training_protocol, exp_ref, fitting_protocol );
 [ discrepancy_tr, exp_data_tr ] = CalculateDiscrepancy( exp_ref, training_protocol, I_tr );
 voltage_tr=importdata(['../Protocols/' training_protocol '_protocol.mat']);
 
@@ -167,7 +172,7 @@ end
 %% Prediction Data
 
 [ variables_pr, I_pr, rates_pr, fluxes_pr, sensitivity_pr, dIdp_pr, voltage_pr, dVdt_pr, time_pr, ~ ]  ...
-                                    = CalculateVariables( prediction_protocol, exp_ref );
+                                    = CalculateVariables( prediction_protocol, exp_ref, fitting_protocol );
 [ discrepancy_pr, exp_data_pr ] = CalculateDiscrepancy( exp_ref, prediction_protocol, I_pr );
 voltage_pr=importdata(['../Protocols/' prediction_protocol '_protocol.mat']);
 
